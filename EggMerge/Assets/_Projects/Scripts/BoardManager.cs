@@ -22,7 +22,7 @@ public class BoardManager : Singleton<BoardManager>
         foreach (var pos in board.cellBounds.allPositionsWithin)
         {   
             Vector3Int localPlace = new Vector3Int(pos.x, pos.y, pos.z);
-            Vector3 place = board.CellToWorld(localPlace);
+            Vector3 place = board.GetCellCenterWorld(localPlace);
             if (board.HasTile(localPlace))
             {
                 slots.Add(place);
