@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using System;
+using UnityEngine.EventSystems;
 using Unity.VisualScripting;
 
-public abstract class BaseDraggable : MonoBehaviour
+public abstract class BaseDraggable : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private bool isDragging;
 
@@ -16,15 +17,13 @@ public abstract class BaseDraggable : MonoBehaviour
         isDragging = false;
     }
 
-    private void OnMouseDown()
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        if(!isDragging)
-            OnStartDrag(transform.position);
-
         isDragging = true;
+        OnStartDrag(transform.position);
     }
 
-    private void OnMouseDrag()
+    public void OnDrag(PointerEventData eventData)
     {
         Vector3 currnePosition = GetMouseWorldPosition();
         transform.position = new Vector3(currnePosition.x, currnePosition.y, 0);
@@ -32,12 +31,18 @@ public abstract class BaseDraggable : MonoBehaviour
         OnDragging(transform.position);
     }
 
-    private void OnMouseUp()
+    public void OnEndDrag(PointerEventData eventData)
     {
-        if(isDragging)
-            OnEndDrag(transform.position);
-
+        OnEndDrag(transform.position);
         isDragging = false;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(eventData.clickCount == 1)
+            OnClick();
+        else if(eventData.clickCount == 2)
+            OnDoubleClick();
     }
 
     // 현재 커서의 위치를 월드 포지션 값으로 return 한다
@@ -47,5 +52,10 @@ public abstract class BaseDraggable : MonoBehaviour
     protected abstract void OnStartDrag(Vector3 currnetPosition);
     protected abstract void OnEndDrag(Vector3 currnetPosition);
     protected abstract void OnDragging(Vector3 currnetPosition);
+#endregion
+
+#region virtual method
+    protected virtual void OnClick() { }
+    protected virtual void OnDoubleClick() { }
 #endregion
 }

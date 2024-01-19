@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7205a60c5113b2642b64fa4e8f1204c5, type: 3}
+  m_Name: IceData
+  m_EditorClassIdentifier: 
+  _key: ice_1
+  _mergeCategory: 1
+  _level: 1
+  _spriteAssetRef:
+    m_AssetGUID: d2e81d6c311621741b660f9e7a383495
+    m_SubObjectName: Ice
+    m_SubObjectType: UnityEngine.Sprite, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    m_EditorAssetChanged: 1
+  _isGenerator: 1
+  _maxGenerateCount: 10
+  _coolTime: 20
+  _generateDataKey: penguin_1
