@@ -11,10 +11,14 @@ using System.Linq;
 
 public class GameDataManager : Singleton<GameDataManager>
 {
+    private bool _isInitialized;
+    public bool IsInitialized => _isInitialized;
+
     private List<MergeData> _datas;
 
-    void Start()
+    void Awake()
     {
+        _isInitialized = false;
         _datas = new();
         LoadDatas().Forget();
     }
@@ -44,6 +48,7 @@ public class GameDataManager : Singleton<GameDataManager>
         await groupOp;
 
         Addressables.Release(loadResourceLocationsHandle);
+        _isInitialized = true;
     }
 
     public MergeData GetData(string key)

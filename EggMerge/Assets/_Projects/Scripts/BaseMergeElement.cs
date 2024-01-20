@@ -1,9 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class BaseMergeElement : BaseDraggable
 {
+    [SerializeField] string _dataKey;
+
     private Vector3 _originPos;
     public Vector3 OriginPos => _originPos;
 
@@ -13,11 +19,21 @@ public class BaseMergeElement : BaseDraggable
     public void SetItem(MergeData mergeData)
     {
         _mergeData = mergeData;
+        _dataKey = _mergeData.Key;
+    }
+
+    public void ChangePosition(Vector3 position)
+    {
+        transform.position = position;
+        _originPos = position;
     }
 
     public bool CanBeMerged(BaseMergeElement other)
     {
-        return other.MergeData.MergeCategory == this._mergeData.MergeCategory && other.MergeData.Level == this._mergeData.Level;
+        bool isSame = other.MergeData.MergeCategory == this._mergeData.MergeCategory && other.MergeData.Level == this._mergeData.Level;
+        bool isLastLevel = GameDataManager.Instance.GetMergeDatas().Max(data => data.Level) == _mergeData.Level;
+
+        return isSame && !isLastLevel;
     }
 
     protected override void OnDragging(Vector3 currnetPosition)
@@ -38,7 +54,9 @@ public class BaseMergeElement : BaseDraggable
             }
             else
             {
-                transform.position = _originPos;
+                SlotItem originSlot = BoardManager.Instance.GetNearestSlot(_originPos);
+                // 머지를 할 수 없으면 자리를 바꿔치기 한다.
+                nearestSlot.ExchangePosition(originSlot);
             }
         }
         else
@@ -55,6 +73,17 @@ public class BaseMergeElement : BaseDraggable
     protected override void OnClick()
     {
         base.OnClick();
+
+        if(_mergeData.IsGenerator)
+        {
+            var generateItemData = GameDataManager.Instance.GetData(_mergeData.GenerateDataKey);
+            var poolObj = ObjectPoolManager.Instance.Get() as MergePoolObject;
+            var slot = BoardManager.Instance.GetRandomEmptySlot(transform.position);
+            poolObj.InitMergeElement(generateItemData);
+
+            poolObj.transform.position = slot.Position;
+            slot.SetOccupied(poolObj.MergeElement);
+        }
     }
 
     protected override void OnDoubleClick()

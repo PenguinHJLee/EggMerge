@@ -3,10 +3,6 @@ using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.AddressableAssets;
 using Cysharp.Threading.Tasks;
-using System;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
-using System.Linq;
 
 public class ObjectPoolManager : Singleton<ObjectPoolManager>
 {
@@ -62,12 +58,13 @@ public class ObjectPoolManager : Singleton<ObjectPoolManager>
     private void GetFromPool<T>(T poolObject) where T : BasePoolObject
     {
         poolObject.gameObject.SetActive(true);
-        poolObject.OnUse();
+        poolObject.OnGet();
     }
 
     private void ReleaseToPool<T>(T pooledObject) where T : BasePoolObject
     {
         pooledObject.gameObject.SetActive(false);
+        pooledObject.OnRelease();
     }
 
     private void DestroyPooledObject<T>(T pooledObject) where T : BasePoolObject
