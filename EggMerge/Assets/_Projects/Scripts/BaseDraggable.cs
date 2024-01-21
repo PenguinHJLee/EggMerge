@@ -8,23 +8,24 @@ using Unity.VisualScripting;
 
 public abstract class BaseDraggable : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    private bool isDragging;
-
-    public bool IsDragging => isDragging;
+    private bool _draggingLocked;
+    public bool DraggingLocked => _draggingLocked;
 
     void Start()
     {
-        isDragging = false;
+        _draggingLocked = false;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        isDragging = true;
         OnStartDrag(transform.position);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
+        if(_draggingLocked)
+            return;
+
         Vector3 currnePosition = GetMouseWorldPosition();
         transform.position = new Vector3(currnePosition.x, currnePosition.y, 0);
 
@@ -34,7 +35,6 @@ public abstract class BaseDraggable : MonoBehaviour, IPointerClickHandler, IBegi
     public void OnEndDrag(PointerEventData eventData)
     {
         OnEndDrag(transform.position);
-        isDragging = false;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -43,6 +43,11 @@ public abstract class BaseDraggable : MonoBehaviour, IPointerClickHandler, IBegi
             OnClick();
         else if(eventData.clickCount == 2)
             OnDoubleClick();
+    }
+
+    public void SetLock(bool locked)
+    {
+        _draggingLocked = locked;
     }
 
     // 현재 커서의 위치를 월드 포지션 값으로 return 한다

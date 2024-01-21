@@ -25,6 +25,7 @@ public class BoardManager : Singleton<BoardManager>
         await UniTask.WaitUntil(() => GameDataManager.Instance.IsInitialized);
         var iceData = GameDataManager.Instance.GetData("ice_1");
         _firstGenerator.SetItem(iceData);
+        _firstGenerator.SetOriginPosition();
 
         _slots = new();
 

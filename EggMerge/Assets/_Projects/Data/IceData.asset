@@ -23,5 +23,5 @@ MonoBehaviour:
     m_EditorAssetChanged: 1
   _isGenerator: 1
   _maxGenerateCount: 10
-  _coolTime: 20
+  _coolTime: 10
   _generateDataKey: penguin_1
