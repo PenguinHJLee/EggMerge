@@ -9,8 +9,8 @@ public class BasePoolObject : MonoBehaviour
     protected IObjectPool<BasePoolObject> objectPool;
     public IObjectPool<BasePoolObject> ObjectPool { set => objectPool = value; }
 
-    public virtual void Initialize() {}
-    public virtual void OnGet() {}
-    public virtual void OnRelease() {}
-    protected virtual void OnDestroy() {}
+    public void Release()
+    {
+        objectPool.Release(this);
+    }
 }

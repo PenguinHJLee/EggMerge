@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Pool;
+using UnityEngine.AddressableAssets;
 
 public class BaseMergeElement : BaseDraggable
 {
@@ -16,10 +16,29 @@ public class BaseMergeElement : BaseDraggable
     private MergeData _mergeData;
     public MergeData MergeData => _mergeData;
 
+    private BasePoolObject _mergePoolObject;
+    private SpriteRenderer _spriteRenderer;
+
+    private int _currentGaenrateGage;
+
+    void Awake()
+    {
+        _mergePoolObject = transform.GetComponent<BasePoolObject>();
+        _spriteRenderer = transform.GetComponent<SpriteRenderer>();
+    }
+
     public void SetItem(MergeData mergeData)
     {
+        Debug.Log($"{mergeData.Key} set item...", gameObject);
         _mergeData = mergeData;
         _dataKey = _mergeData.Key;
+        _currentGaenrateGage =_mergeData.MaxGenerateCount;
+
+        // 오브젝트 스프라이트 어드레서블로 로드한 다음 set 해주기
+        var spriteOp = _mergeData.SpriteAssetRef.LoadAssetAsync();
+        _spriteRenderer.sprite = spriteOp.WaitForCompletion();
+        
+        Addressables.Release(spriteOp);
     }
 
     public void ChangePosition(Vector3 position)
@@ -30,10 +49,18 @@ public class BaseMergeElement : BaseDraggable
 
     public bool CanBeMerged(BaseMergeElement other)
     {
+        if(other.Equals(this))
+            return false;
+
         bool isSame = other.MergeData.MergeCategory == this._mergeData.MergeCategory && other.MergeData.Level == this._mergeData.Level;
         bool isLastLevel = GameDataManager.Instance.GetMergeDatas().Max(data => data.Level) == _mergeData.Level;
 
         return isSame && !isLastLevel;
+    }
+
+    public void Release()
+    {
+        this._mergePoolObject.Release();
     }
 
     protected override void OnDragging(Vector3 currnetPosition)
@@ -50,7 +77,18 @@ public class BaseMergeElement : BaseDraggable
             // 머지 가능한지?
             if(CanBeMerged(nearestSlot.LoadedElement))
             {
+                nearestSlot.LoadedElement.Release();
                 var obj = ObjectPoolManager.Instance.Get();
+                BaseMergeElement mergeElement = obj.transform.GetComponent<BaseMergeElement>();
+
+                string nextObjKey = $"{_mergeData.MergeCategory.ToString()}_{_mergeData.Level + 1}".ToLowerInvariant();
+                var nextLevelData = GameDataManager.Instance.GetData(nextObjKey);
+
+                mergeElement.transform.position = nearestSlot.Position;
+                mergeElement.SetItem(nextLevelData);
+                nearestSlot.SetOccupied(mergeElement);
+
+                this._mergePoolObject.Release();
             }
             else
             {
@@ -62,6 +100,9 @@ public class BaseMergeElement : BaseDraggable
         else
         {
             transform.position = nearestSlot.Position;
+            nearestSlot.SetOccupied(this);
+
+            // 원래 있던 자리 비워주기
         }
     }
 
@@ -74,15 +115,19 @@ public class BaseMergeElement : BaseDraggable
     {
         base.OnClick();
 
-        if(_mergeData.IsGenerator)
+        // 생성기면 횟수제한이 남아 있을 때 까지 오브젝트를 생겅해준다.
+        if(_mergeData.IsGenerator && _currentGaenrateGage > 0)
         {
             var generateItemData = GameDataManager.Instance.GetData(_mergeData.GenerateDataKey);
-            var poolObj = ObjectPoolManager.Instance.Get() as MergePoolObject;
+            var poolObj = ObjectPoolManager.Instance.Get();
             var slot = BoardManager.Instance.GetRandomEmptySlot(transform.position);
-            poolObj.InitMergeElement(generateItemData);
+
+            BaseMergeElement mergeElement = poolObj.transform.GetComponent<BaseMergeElement>();
+            mergeElement.SetItem(generateItemData);
 
             poolObj.transform.position = slot.Position;
-            slot.SetOccupied(poolObj.MergeElement);
+            slot.SetOccupied(mergeElement);
+            _currentGaenrateGage--;
         }
     }
 

@@ -15,10 +15,7 @@ public class ObjectPoolManager : Singleton<ObjectPoolManager>
     }
 
 #region public method
-    public BasePoolObject Get()
-    {
-        return _pool.Get();
-    }
+    public BasePoolObject Get() =>  _pool.Get();
 #endregion
 
     public async UniTaskVoid Initialize()
@@ -31,10 +28,10 @@ public class ObjectPoolManager : Singleton<ObjectPoolManager>
     private async UniTask MakePools()
     {
         _pool = new ObjectPool<BasePoolObject>(
-            CreatePooledObject<BasePoolObject>,
-            GetFromPool<BasePoolObject>,
-            ReleaseToPool<BasePoolObject>,
-            DestroyPooledObject<BasePoolObject>,
+            CreatePooledObject,
+            GetFromPool,
+            ReleaseToPool,
+            DestroyPooledObject,
             maxSize : 999);
 
         await UniTask.Yield();
@@ -46,28 +43,26 @@ public class ObjectPoolManager : Singleton<ObjectPoolManager>
         _preloadedPrefab = op;
     }
 
-    private T CreatePooledObject<T>() where T : BasePoolObject
+    private BasePoolObject CreatePooledObject()
     {
         BasePoolObject instance = _preloadedPrefab.transform.GetComponent<BasePoolObject>();
         BasePoolObject result = Instantiate(instance, transform);
         result.ObjectPool = _pool;
 
-        return result as T;
+        return result;
     }
 
-    private void GetFromPool<T>(T poolObject) where T : BasePoolObject
+    private void GetFromPool(BasePoolObject poolObject)
     {
         poolObject.gameObject.SetActive(true);
-        poolObject.OnGet();
     }
 
-    private void ReleaseToPool<T>(T pooledObject) where T : BasePoolObject
+    private void ReleaseToPool(BasePoolObject pooledObject)
     {
         pooledObject.gameObject.SetActive(false);
-        pooledObject.OnRelease();
     }
 
-    private void DestroyPooledObject<T>(T pooledObject) where T : BasePoolObject
+    private void DestroyPooledObject(BasePoolObject pooledObject)
     {
         Destroy(pooledObject.gameObject);
     }

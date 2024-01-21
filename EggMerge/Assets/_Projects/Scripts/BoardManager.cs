@@ -37,15 +37,14 @@ public class BoardManager : Singleton<BoardManager>
                 Vector3 place = _board.GetCellCenterWorld(localPlace);
                 if (_board.HasTile(localPlace))
                 {
-                    SlotItem slot = new SlotItem(place, y == _board.cellBounds.yMin);
-
-                    if(x == 0 && y == 0)
-                        slot.SetOccupied(_firstGenerator);
-
                     _slots.Add(new SlotItem(place, y == _board.cellBounds.yMin));
                 }
             }
         }
+
+        // 디폴트로 만들어져있는 생성기 처리를 해준다.
+        SlotItem firstSlot = GetNearestSlot(_firstGenerator.transform.position);
+        firstSlot.SetOccupied(_firstGenerator);
 
     }
 
