@@ -16,6 +16,8 @@ public class MergeData : ScriptableObject
     [SerializeField] private int _maxGenerateCount;
     [SerializeField] private float _coolTime;
     [SerializeField] private string _generateDataKey;
+    [SerializeField] private bool _isRewarable;
+    [SerializeField] private int _rewardAmount;
 
     public string Key => _key;
     public MergeCategory MergeCategory => _mergeCategory;
@@ -25,6 +27,8 @@ public class MergeData : ScriptableObject
     public int MaxGenerateCount => _maxGenerateCount;
     public float CoolTime => _coolTime;
     public string GenerateDataKey => _generateDataKey;
+    public bool IsRewardable => _isRewarable;
+    public int RewardAmount => _rewardAmount;
 }
 
 public enum MergeCategory
@@ -32,10 +36,4 @@ public enum MergeCategory
     Penguin,
     Ice,
     Coin,
-}
-
-public enum ActionType
-{
-    Gained,
-    GetCoin,
 }

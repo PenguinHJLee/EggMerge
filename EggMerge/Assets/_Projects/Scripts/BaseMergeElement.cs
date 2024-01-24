@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks.Triggers;
+using Microsoft.Win32.SafeHandles;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -22,7 +25,7 @@ public class BaseMergeElement : BaseDraggable
     private SpriteRenderer _spriteRenderer;
 #endregion
 
-    private int _currentGaenrateGage;
+    private int _currentGenerateGage;
 
     void Awake()
     {
@@ -38,7 +41,7 @@ public class BaseMergeElement : BaseDraggable
     {
         _mergeData = mergeData;
         _dataKey = _mergeData.Key;
-        _currentGaenrateGage =_mergeData.MaxGenerateCount;
+        _currentGenerateGage =_mergeData.MaxGenerateCount;
         this.SetLock(false);
 
         // 오브젝트 스프라이트 어드레서블로 로드한 다음 set 해주기
@@ -80,6 +83,7 @@ public class BaseMergeElement : BaseDraggable
     public void Release()
     {
         this._mergePoolObject.Release();
+        _timerUi.StopTimer();
     }
 
     protected override void OnDragging(Vector3 currnetPosition)
@@ -111,7 +115,7 @@ public class BaseMergeElement : BaseDraggable
                 mergeElement.SetItem(nextLevelData);
                 nearestSlot.SetOccupied(mergeElement);
 
-                this._mergePoolObject.Release();
+                Release();
                 originSlot.SetOccupied(null);
             }
             else
@@ -144,7 +148,7 @@ public class BaseMergeElement : BaseDraggable
         base.OnClick();
 
         // 생성기면 횟수제한이 남아 있을 때 까지 오브젝트를 생겅해준다.
-        if(_mergeData.IsGenerator && _currentGaenrateGage > 0)
+        if(_mergeData.IsGenerator && _currentGenerateGage > 0)
         {
             var generateItemData = GameDataManager.Instance.GetData(_mergeData.GenerateDataKey);
             var poolObj = ObjectPoolManager.Instance.Get();
@@ -155,9 +159,9 @@ public class BaseMergeElement : BaseDraggable
             mergeElement.ChangePosition(slot.Position);
 
             slot.SetOccupied(mergeElement);
-            _currentGaenrateGage--;
+            _currentGenerateGage--;
 
-            if(_currentGaenrateGage <= 0)
+            if(_currentGenerateGage <= 0)
             {
                 _timerUi.StartTimer(this);
                 _spriteRenderer.color = Color.gray;
@@ -168,12 +172,21 @@ public class BaseMergeElement : BaseDraggable
     protected override void OnDoubleClick()
     {
         base.OnDoubleClick();
+
+        if(_mergeData.IsRewardable)
+        {
+            UIManager.Instance.SendMessage(typeof(CoinUI), new CoinUIMessage() { GainedCoinAmount = _mergeData.RewardAmount });
+
+            SlotItem originSlot = BoardManager.Instance.GetNearestSlot(_originPos);
+            originSlot.SetOccupied(null);
+            this.Release();
+        }
     }
 
     private void OnTimerEndEvent()
     {
         if(_mergeData.IsGenerator)
-            _currentGaenrateGage = _mergeData.MaxGenerateCount;
+            _currentGenerateGage = _mergeData.MaxGenerateCount;
 
         _spriteRenderer.color = Color.white;
     }

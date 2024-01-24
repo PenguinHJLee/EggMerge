@@ -25,3 +25,5 @@ MonoBehaviour:
   _maxGenerateCount: 0
   _coolTime: 0
   _generateDataKey: 
+  _isRewarable: 1
+  _rewardAmount: 1
